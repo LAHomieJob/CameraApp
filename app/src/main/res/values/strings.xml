@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CameraApp</string>
+    <string name="photo_viewer">Photo Viewer</string>
+    <string name="title_activity_fullscreen">Images</string>
+    <string name="upload_image">Upload image</string>
+    <string name="comment_photo">Comment photo</string>
+    <string name="comment">Comment</string>
+    <string name="cancel">Cancel</string>
+</resources>

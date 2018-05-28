@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.webartil.cameraapp.FullScreenImageActivity">
+    <item
+        android:id="@+id/action_comment"
+        android:icon="@drawable/baseline_edit_white_24"
+        android:title="@string/comment_photo"
+        app:showAsAction="ifRoom|collapseActionView"/>
+
+    <item
+        android:id="@+id/action_upload"
+        android:icon="@drawable/baseline_cloud_upload_white_24"
+        android:title="@string/upload_image"
+        app:showAsAction="ifRoom|collapseActionView"/>
+</menu>
