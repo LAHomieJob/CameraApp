@@ -1,6 +1,7 @@
 package com.webartil.cameraapp;
 
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.webartil.cameraapp.viewModel.ViewModel;
 
 
 public class ImageFragment extends Fragment {
@@ -21,16 +23,17 @@ public class ImageFragment extends Fragment {
         void onClickImage();
     }
 
-    public static final String IMAGE_PATH_DATA = "Image path data";
-    private String imagePath;
+    public static final String IMAGE_NAME_DATA = "Image name data";
+    private String fileName;
     private ImageFragmentListener mListener;
     private ImageView mImageView;
     private TextView textViewComment;
+    private ViewModel mViewModel;
 
     public static ImageFragment createInstance(String imagePath) {
         ImageFragment instance = new ImageFragment();
         Bundle args = new Bundle();
-        args.putString(IMAGE_PATH_DATA, imagePath);
+        args.putString(IMAGE_NAME_DATA, imagePath);
         instance.setArguments(args);
         return instance;
     }
@@ -49,7 +52,8 @@ public class ImageFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        imagePath = getArguments().getString(IMAGE_PATH_DATA);
+        fileName = getArguments().getString(IMAGE_NAME_DATA);
+        mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
     }
 
     @Override
@@ -58,7 +62,6 @@ public class ImageFragment extends Fragment {
         View view = inflater.inflate(R.layout.image_container, container, false);
         mImageView = view.findViewById(R.id.place_image);
         textViewComment = view.findViewById(R.id.text_comment);
-        textViewComment.setText("LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOLLLLLLLLLLLLLLLLLLLLLLL");
         mImageView.setOnClickListener(v -> mListener.onClickImage());
         mImageView.setOnTouchListener((v, event) -> {
             mListener.onTouchImage();
@@ -70,8 +73,13 @@ public class ImageFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        mViewModel.getLiveDataImageModelByFileName(fileName)
+                .observe(this, imageModel -> {
+                    String comment = imageModel.getComment();
+                    textViewComment.setText(comment);
+                });
         Glide.with(this)
-                .load("/storage/emulated/0/Android/data/com.webartil.cameraapp/files/Pictures/image gallery/" + imagePath)
+                .load("/storage/emulated/0/Android/data/com.webartil.cameraapp/files/Pictures/image gallery/" + fileName)
                 .into(mImageView);
     }
 

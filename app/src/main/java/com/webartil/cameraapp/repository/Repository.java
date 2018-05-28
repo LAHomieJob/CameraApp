@@ -1,11 +1,14 @@
 package com.webartil.cameraapp.repository;
 
 import android.app.Application;
+import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
 import com.webartil.cameraapp.database.AppDatabase;
 import com.webartil.cameraapp.database.ImageDao;
 import com.webartil.cameraapp.database.ImageModel;
+
+import java.util.concurrent.ExecutionException;
 
 public class Repository {
 
@@ -20,8 +23,24 @@ public class Repository {
         new InsertAsyncTask(imageDao).execute(imageModel);
     }
 
-    public void addComment(String name, String comment){
-        new AddCommentAsyncTask(imageDao).execute(name, comment);
+    public void addComment(String fileName, String comment){
+        new AddCommentAsyncTask(imageDao).execute(fileName, comment);
+    }
+
+    public ImageModel getImageModelByFileName(String fileName) {
+        try {
+            return new GetImageModelByFileNameAsyncTask(imageDao).execute(fileName).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public LiveData<ImageModel> getLiveDataImageModelByFileName(String fileName){
+        return imageDao.getLiveDataImageModelByFileName(fileName);
     }
 
     private static class InsertAsyncTask extends AsyncTask<ImageModel, Void, Void> {
@@ -54,4 +73,22 @@ public class Repository {
         }
     }
 
+    private static class GetImageModelByFileNameAsyncTask extends AsyncTask<String, Void, ImageModel> {
+
+        private ImageDao mAsyncTaskDao;
+
+        GetImageModelByFileNameAsyncTask(ImageDao dao) {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected ImageModel doInBackground(String... params) {
+            return mAsyncTaskDao.getImageModelByFileName(params[0]);
+        }
+
+        @Override
+        protected void onPostExecute(ImageModel imageModel) {
+            super.onPostExecute(imageModel);
+        }
+    }
 }

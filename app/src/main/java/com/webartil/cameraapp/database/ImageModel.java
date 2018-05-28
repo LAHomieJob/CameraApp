@@ -10,7 +10,7 @@ public class ImageModel {
 
     @NonNull
     @PrimaryKey
-    @ColumnInfo(name = "name")
+    @ColumnInfo(name = "file_name")
     private String name;
 
     @ColumnInfo(name = "comment")

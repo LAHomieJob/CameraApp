@@ -24,10 +24,12 @@
             android:id="@+id/text_comment"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="16dp"
             android:fontFamily="sans-serif"
+            android:padding="16dp"
+            android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
             android:textColor="@android:color/white"
+            android:textSize="18sp"
             tools:text="A brief example of the very-very useless long-long test comment" />
     </RelativeLayout>
 

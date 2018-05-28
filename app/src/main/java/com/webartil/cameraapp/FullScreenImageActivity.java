@@ -1,6 +1,7 @@
 package com.webartil.cameraapp;
 
 import android.annotation.SuppressLint;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
@@ -11,12 +12,14 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+
+import com.webartil.cameraapp.api.LocalStorageApi;
+import com.webartil.cameraapp.viewModel.ViewModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -69,50 +72,47 @@ public class FullScreenImageActivity extends AppCompatActivity
         }
     };
     private boolean mVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
-    /**
-     * Touch listener to use for in-layout UI controls to delay hiding the
-     * system UI. This is to prevent the jarring behavior of controls going away
-     * while interacting with activity UI.
-     */
-    private final View.OnTouchListener mDelayHideTouchListener = (view, motionEvent) -> {
-        if (AUTO_HIDE) {
-            delayedHide(AUTO_HIDE_DELAY_MILLIS);
-        }
-        return false;
-    };
-
-    static String FOLDER = "/storage/emulated/0/Android/data/com.webartil.cameraapp/files/Pictures/image gallery";
+    private final Runnable mHideRunnable = () -> hide();
+    
     private static final String COMMENT_DIALOG = "Comment dialog";
+    private LocalStorageApi mApi;
+    private ViewModel mViewModel;
     private ViewPager mViewPager;
     private CommentAlertDialog dialog;
-    private ArrayList<String> imagePaths = new ArrayList<>(Arrays.asList(new File(FOLDER).list()));
     private int position;
+
+    private void setPosition(final int position) {
+        this.position = position;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         mVisible = true;
+        mApi = new LocalStorageApi(this);
+        mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
         mViewPager = findViewById(R.id.image_pager);
         position = getIntent().getIntExtra("PATH", 0);
+        mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(final int position) {
+                setPosition(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(final int state) {
+
+            }
+        });
         initToolbar();
         setImage();
     }
-
-    /*private ArrayList<String> formListOfImages(String folder) {
-        File[] completeFolder = new File(folder).listFiles();
-        ArrayList<String> pathList = new ArrayList<>();
-        for (int i = 0; i < completeFolder.length; i++) {
-            pathList.add(completeFolder[i].getAbsolutePath());
-        }
-        return pathList;
-    }*/
 
     private void setImage() {
         ImagePagerAdapter adapter = new ImagePagerAdapter(getSupportFragmentManager());
@@ -153,11 +153,13 @@ public class FullScreenImageActivity extends AppCompatActivity
 
     @Override
     public void onDialogPositiveClick(final DialogFragment dialog) {
-        EditText comment = dialog.getDialog().findViewById(R.id.text_comment);
-        if (TextUtils.isEmpty(comment.getText())) {
+        EditText commentBox = dialog.getDialog().findViewById(R.id.text_comment);
+        if (TextUtils.isEmpty(commentBox.getText())) {
             dialog.dismiss();
         } else {
-
+            String fileName = mApi.getFileNameByListPosition(position);
+            String comment = commentBox.getText().toString();
+            mViewModel.addComment(fileName, comment);
         }
     }
 
@@ -221,9 +223,9 @@ public class FullScreenImageActivity extends AppCompatActivity
 
     @Override
     public void onClickImage() {
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
+        /*Upon interacting with UI controls, delay any scheduled hide()
+        operations to prevent the jarring behavior of controls going away
+        while interacting with the UI.*/
         toggle();
     }
 
@@ -236,13 +238,13 @@ public class FullScreenImageActivity extends AppCompatActivity
 
         @Override
         public Fragment getItem(int position) {
-            Log.d("GLIDE_PATH", imagePaths.get(position));
-            return ImageFragment.createInstance(imagePaths.get(position));
+            setPosition(position);
+            return ImageFragment.createInstance(mApi.getFileNameByListPosition(position));
         }
 
         @Override
         public int getCount() {
-            return imagePaths.size();
+            return mApi.getGeneratedImageFolder().list().length;
         }
     }
 }
