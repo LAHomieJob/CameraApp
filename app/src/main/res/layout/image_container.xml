@@ -15,6 +15,7 @@
         android:scaleType="fitCenter"/>
 
     <RelativeLayout
+        android:id="@+id/container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
@@ -22,7 +23,7 @@
 
         <TextView
             android:id="@+id/text_comment"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif"
             android:padding="16dp"

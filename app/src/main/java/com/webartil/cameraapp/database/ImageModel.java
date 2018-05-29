@@ -16,6 +16,18 @@ public class ImageModel {
     @ColumnInfo(name = "comment")
     private String comment;
 
+    @ColumnInfo(name = "uploaded")
+    private int upload;
+
+    public ImageModel(final String name) {
+        this.name = name;
+        this.upload = 0;
+    }
+
+    public int getUpload() {
+        return upload;
+    }
+
     public String getName() {
         return name;
     }
@@ -32,7 +44,7 @@ public class ImageModel {
         this.comment = comment;
     }
 
-    public ImageModel(final String name) {
-        this.name = name;
+    public void setUpload(final int upload) {
+        this.upload = upload;
     }
 }

@@ -14,6 +14,9 @@ public interface ImageDao {
     @Query("UPDATE images SET comment= :comment WHERE file_name= :fileName")
     void addComment(String fileName, String comment);
 
+    @Query("UPDATE images SET uploaded= 1 WHERE file_name= :fileName")
+    void setImageUploaded(String fileName);
+
     @Query("SELECT * FROM images WHERE file_name = :fileName")
     ImageModel getImageModelByFileName (String fileName);
 

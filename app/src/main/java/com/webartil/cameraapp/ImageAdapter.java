@@ -9,9 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
+import com.webartil.cameraapp.viewModel.ViewModel;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,13 +25,17 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
     private File imagesFile;
     private Context context;
     private OnImageClickListener listener;
+    private ViewModel viewModel;
 
-    public ImageAdapter(Context context, File folderFile, OnImageClickListener onImageClickListener) {
+    public ImageAdapter
+            (Context context, File folderFile, OnImageClickListener onImageClickListener, ViewModel viewModel) {
         this.context = context;
-        imagesFile = folderFile;
         listener = onImageClickListener;
+        this.viewModel = viewModel;
+        imagesFile = folderFile;
     }
 
+    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
@@ -39,13 +43,16 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         return new ViewHolder(view, listener);
     }
 
-
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         GlideApp.with(context)
                 .load(imagesFile.listFiles()[position])
                 .override(600, 600)
                 .into(holder.imageView);
+        int uploadBookmark = viewModel.getImageModelByFileName(imagesFile.list()[position]).getUpload();
+        if (uploadBookmark == 1) {
+            holder.bookmark.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -62,22 +69,28 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     @Nullable
     @Override
-    public RequestBuilder<?> getPreloadRequestBuilder(@NonNull final File item) {
+    public RequestBuilder<?> getPreloadRequestBuilder(final File item) {
         return GlideApp.with(context)
                 .load(item)
                 .override(600, 600);
     }
 
 
+    public interface OnImageClickListener {
+        void onClickImage(int position);
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView imageView;
+        ImageView bookmark;
         OnImageClickListener listener;
 
-        public ViewHolder(View view, OnImageClickListener onImageClickListener) {
+        ViewHolder(View view, OnImageClickListener onImageClickListener) {
             super(view);
             listener = onImageClickListener;
             imageView = view.findViewById(R.id.image_gallery_item);
+            bookmark = view.findViewById(R.id.bookmark);
             imageView.setOnClickListener(this);
         }
 
@@ -85,10 +98,6 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
         public void onClick(final View v) {
             listener.onClickImage(getAdapterPosition());
         }
-    }
-
-    public interface OnImageClickListener{
-        void onClickImage(int position);
     }
 
 }

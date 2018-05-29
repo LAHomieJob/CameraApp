@@ -23,6 +23,10 @@ public class ViewModel extends AndroidViewModel {
         repository.addComment(fileName, comment);
     }
 
+    public void setImageUploaded(String fileName) {
+        repository.setImageUploaded(fileName);
+    }
+
     public ImageModel getImageModelByFileName(String fileName){
         return repository.getImageModelByFileName(fileName);
     }

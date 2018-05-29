@@ -10,7 +10,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
@@ -25,8 +24,7 @@ import java.io.IOException;
 public class CameraActivity extends AppCompatActivity implements ImageAdapter.OnImageClickListener {
 
     private static final int ACTIVITY_START_CAMERA_APP = 0;
-    public static final String PATH = "PATH";
-    public static final String FILE_NAME = "FILE_NAME";
+    private static final String POSITION = "Position of photo in grid";
     private LocalStorageApi mApiInstance;
     private ViewModel mViewModel;
     private File tempPhotoFile;
@@ -37,7 +35,7 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        mApiInstance = new LocalStorageApi(this); //initialize Api with predefined folder
+        mApiInstance = new LocalStorageApi(this);
         mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
         Toolbar toolbar = findViewById(R.id.toolbar_activity_camera);
         setSupportActionBar(toolbar);
@@ -51,7 +49,7 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 3);
         mRecyclerView.setLayoutManager(layoutManager);
         imageAdapter = new ImageAdapter
-                (this, mApiInstance.getGeneratedImageFolder(), this);
+                (this, mApiInstance.getGeneratedImageFolder(), this, mViewModel);
         FixedPreloadSizeProvider<File> preloadSizeProvider =
                 new FixedPreloadSizeProvider<>(600, 600);
         RecyclerViewPreloader<File> preloader = new RecyclerViewPreloader<>
@@ -61,8 +59,7 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
     }
 
     private void takePhoto() {
-        Intent callCameraApplicationIntent = new Intent();
-        callCameraApplicationIntent.setAction(MediaStore.ACTION_IMAGE_CAPTURE);
+        Intent callCameraApplicationIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         try {
             tempPhotoFile = mApiInstance.createTemporaryImageFile();
         } catch (IOException e) {
@@ -74,17 +71,24 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
 
     @Override
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
-        Log.d(FILE_NAME, tempPhotoFile.getName());
-        mViewModel.insert(new ImageModel(tempPhotoFile.getName()));
-        RecyclerView.Adapter newImageAdapter = new ImageAdapter
-                (this, mApiInstance.getGeneratedImageFolder(), this);
-        mRecyclerView.swapAdapter(newImageAdapter, false);
+        if (requestCode == ACTIVITY_START_CAMERA_APP) {
+            if (resultCode == RESULT_OK) {
+                mViewModel.insert(new ImageModel(tempPhotoFile.getName()));
+                RecyclerView.Adapter newImageAdapter = new ImageAdapter
+                        (this, mApiInstance.getGeneratedImageFolder(), this, mViewModel);
+                mRecyclerView.swapAdapter(newImageAdapter, false);
+            } else {
+                /*delete empty temporary file if the user closes
+                the camera without shooting photo*/
+                tempPhotoFile.delete();
+            }
+        }
     }
 
     @Override
     public void onClickImage(final int position) {
         Intent intent = new Intent(this, FullScreenImageActivity.class);
-        intent.putExtra(PATH, position);
+        intent.putExtra(POSITION, position);
         startActivity(intent);
     }
 }

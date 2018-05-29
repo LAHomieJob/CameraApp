@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "218406319293",
+    "firebase_url": "https://cameraapp-590ec.firebaseio.com",
+    "project_id": "cameraapp-590ec",
+    "storage_bucket": "cameraapp-590ec.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218406319293:android:f5dea320a1d00d11",
+        "android_client_info": {
+          "package_name": "com.webartil.cameraapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "218406319293-5koe2snj0r1olmkgj8l58qqadp35cofq.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "218406319293-5koe2snj0r1olmkgj8l58qqadp35cofq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBQ9ktQx3sDaZzJapP6Pd8eL2DzyTnqb4Y"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

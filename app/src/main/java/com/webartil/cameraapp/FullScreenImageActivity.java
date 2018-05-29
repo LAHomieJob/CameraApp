@@ -1,7 +1,9 @@
 package com.webartil.cameraapp;
 
 import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
 import android.arch.lifecycle.ViewModelProviders;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.DialogFragment;
@@ -17,13 +19,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.webartil.cameraapp.api.LocalStorageApi;
 import com.webartil.cameraapp.viewModel.ViewModel;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
 public class FullScreenImageActivity extends AppCompatActivity
@@ -46,6 +48,7 @@ public class FullScreenImageActivity extends AppCompatActivity
      * and a change of the status and navigation bar.
      */
     private static final int UI_ANIMATION_DELAY = 300;
+    public static final String POSITION = "Position of photo in grid";
     private final Handler mHideHandler = new Handler();
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -72,7 +75,7 @@ public class FullScreenImageActivity extends AppCompatActivity
         }
     };
     private boolean mVisible;
-    private final Runnable mHideRunnable = () -> hide();
+    private final Runnable mHideRunnable = this::hide;
     
     private static final String COMMENT_DIALOG = "Comment dialog";
     private LocalStorageApi mApi;
@@ -80,6 +83,8 @@ public class FullScreenImageActivity extends AppCompatActivity
     private ViewPager mViewPager;
     private CommentAlertDialog dialog;
     private int position;
+    FirebaseStorage storage;
+    StorageReference storageReference;
 
     private void setPosition(final int position) {
         this.position = position;
@@ -91,9 +96,11 @@ public class FullScreenImageActivity extends AppCompatActivity
         setContentView(R.layout.activity_fullscreen);
         mVisible = true;
         mApi = new LocalStorageApi(this);
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
         mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
         mViewPager = findViewById(R.id.image_pager);
-        position = getIntent().getIntExtra("PATH", 0);
+        position = getIntent().getIntExtra(POSITION, 0);
         mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(final int position, final float positionOffset, final int positionOffsetPixels) {
@@ -113,6 +120,7 @@ public class FullScreenImageActivity extends AppCompatActivity
         initToolbar();
         setImage();
     }
+
 
     private void setImage() {
         ImagePagerAdapter adapter = new ImagePagerAdapter(getSupportFragmentManager());
@@ -140,9 +148,36 @@ public class FullScreenImageActivity extends AppCompatActivity
                 showCommentDialog();
                 return true;
             case R.id.action_upload:
+                uploadImage();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void uploadImage() {
+        Uri filePath = Uri.fromFile(mApi.getGeneratedImageFolder().listFiles()[position]);
+        if (filePath != null) {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();
+
+            StorageReference ref = storageReference.child("images/" + mApi.getGeneratedImageFolder().listFiles()[position].getName());
+            ref.putFile(filePath)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        progressDialog.dismiss();
+                        mViewModel.setImageUploaded(mApi.getFileNameByListPosition(position));
+                        Toast.makeText(FullScreenImageActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(FullScreenImageActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnProgressListener(taskSnapshot -> {
+                        double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot
+                                .getTotalByteCount());
+                        progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                    });
         }
     }
 

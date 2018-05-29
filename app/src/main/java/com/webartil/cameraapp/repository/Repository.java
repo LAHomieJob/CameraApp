@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 
 public class Repository {
 
-    ImageDao imageDao;
+    private ImageDao imageDao;
 
     public Repository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
@@ -25,6 +25,10 @@ public class Repository {
 
     public void addComment(String fileName, String comment){
         new AddCommentAsyncTask(imageDao).execute(fileName, comment);
+    }
+
+    public void setImageUploaded(String fileName) {
+        new SetImageUploadedAsyncTask(imageDao).execute(fileName);
     }
 
     public ImageModel getImageModelByFileName(String fileName) {
@@ -69,6 +73,21 @@ public class Repository {
         @Override
         protected Void doInBackground(String... params) {
             mAsyncTaskDao.addComment(params[0], params[1]);
+            return null;
+        }
+    }
+
+    private static class SetImageUploadedAsyncTask extends AsyncTask<String, Void, Void> {
+
+        private ImageDao mAsyncTaskDao;
+
+        SetImageUploadedAsyncTask(ImageDao dao) {
+            mAsyncTaskDao = dao;
+        }
+
+        @Override
+        protected Void doInBackground(String... params) {
+            mAsyncTaskDao.setImageUploaded(params[0]);
             return null;
         }
     }
