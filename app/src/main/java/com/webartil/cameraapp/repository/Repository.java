@@ -4,19 +4,40 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
+import com.webartil.cameraapp.api.LocalStorageApi;
 import com.webartil.cameraapp.database.AppDatabase;
 import com.webartil.cameraapp.database.ImageDao;
 import com.webartil.cameraapp.database.ImageModel;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 public class Repository {
 
     private ImageDao imageDao;
+    private LocalStorageApi mApi;
 
     public Repository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
+        mApi = new LocalStorageApi(application);
         imageDao= db.mImageDao();
+    }
+
+    public File getLocalImageFolder() {
+        return mApi.getLocalImageFolder();
+    }
+
+    public String getFileNameFromLocalFolderByPosition(int listPosition) {
+        return mApi.getFileNameFromLocalFolderByPosition(listPosition);
+    }
+
+    public File getFileFromLocalFolderByPosition(int listPosition) {
+        return mApi.getFileFromFolderByPosition(listPosition);
+    }
+
+    public File createTemporaryImageFile() throws IOException {
+        return mApi.createTemporaryImageFile();
     }
 
     public void insert(ImageModel imageModel) {

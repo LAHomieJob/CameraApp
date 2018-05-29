@@ -67,7 +67,6 @@ public class ImageFragment extends Fragment {
         textViewComment = view.findViewById(R.id.text_comment);
         mImageView.setOnClickListener(v -> mListener.onClickImage());
         mImageView.setOnTouchListener((v, event) -> {
-            v.performClick();
             mListener.onTouchImage();
             return false;
         });
@@ -85,6 +84,7 @@ public class ImageFragment extends Fragment {
                     }
                 });
         Glide.with(this)
+                // TODO: 29.05.2018 delete hardcode
                 .load("/storage/emulated/0/Android/data/com.webartil.cameraapp/files/Pictures/image gallery/" + fileName)
                 .into(mImageView);
     }

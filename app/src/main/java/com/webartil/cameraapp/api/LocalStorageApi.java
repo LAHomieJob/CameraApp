@@ -12,19 +12,23 @@ public class LocalStorageApi {
 
     private Context context;
     private File imageFolder;
-    private String galleryLocation = "image gallery";
+    private final static String galleryLocation = "image gallery";
 
     public LocalStorageApi(final Context context) {
         this.context = context;
         this.imageFolder = createExternalImageFolder();
     }
 
-    public File getGeneratedImageFolder() {
+    public File getLocalImageFolder() {
         return imageFolder;
     }
 
-    public String getFileNameByListPosition(int position){
-        return imageFolder.list()[position];
+    public String getFileNameFromLocalFolderByPosition(int listPosition) {
+        return imageFolder.listFiles()[listPosition].getName();
+    }
+
+    public File getFileFromFolderByPosition(int listPosition) {
+        return imageFolder.listFiles()[listPosition];
     }
 
     public File createTemporaryImageFile() throws IOException {

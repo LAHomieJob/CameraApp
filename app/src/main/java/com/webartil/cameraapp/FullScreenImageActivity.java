@@ -14,6 +14,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,10 +23,11 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
-import com.webartil.cameraapp.api.LocalStorageApi;
 import com.webartil.cameraapp.viewModel.ViewModel;
 
+import java.io.File;
 import java.util.Objects;
 
 public class FullScreenImageActivity extends AppCompatActivity
@@ -76,15 +78,15 @@ public class FullScreenImageActivity extends AppCompatActivity
     };
     private boolean mVisible;
     private final Runnable mHideRunnable = this::hide;
-    
+
     private static final String COMMENT_DIALOG = "Comment dialog";
-    private LocalStorageApi mApi;
     private ViewModel mViewModel;
     private ViewPager mViewPager;
     private CommentAlertDialog dialog;
     private int position;
-    FirebaseStorage storage;
-    StorageReference storageReference;
+    StorageMetadata metadata;
+    private FirebaseStorage storage;
+    private StorageReference storageReference;
 
     private void setPosition(final int position) {
         this.position = position;
@@ -95,7 +97,6 @@ public class FullScreenImageActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         mVisible = true;
-        mApi = new LocalStorageApi(this);
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
@@ -156,17 +157,18 @@ public class FullScreenImageActivity extends AppCompatActivity
     }
 
     private void uploadImage() {
-        Uri filePath = Uri.fromFile(mApi.getGeneratedImageFolder().listFiles()[position]);
+        File uploadedFile = mViewModel.getFileFromLocalFolderByPosition(position);
+        Uri filePath = Uri.fromFile(uploadedFile);
         if (filePath != null) {
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
-            StorageReference ref = storageReference.child("images/" + mApi.getGeneratedImageFolder().listFiles()[position].getName());
+            StorageReference ref = storageReference.child("images/" + uploadedFile.getName());
             ref.putFile(filePath)
                     .addOnSuccessListener(taskSnapshot -> {
                         progressDialog.dismiss();
-                        mViewModel.setImageUploaded(mApi.getFileNameByListPosition(position));
+                        mViewModel.setImageUploaded(uploadedFile.getName());
                         Toast.makeText(FullScreenImageActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
                     })
                     .addOnFailureListener(e -> {
@@ -192,9 +194,18 @@ public class FullScreenImageActivity extends AppCompatActivity
         if (TextUtils.isEmpty(commentBox.getText())) {
             dialog.dismiss();
         } else {
-            String fileName = mApi.getFileNameByListPosition(position);
+            String fileName = mViewModel.getFileNameFromLocalFolderByPosition(position);
             String comment = commentBox.getText().toString();
             mViewModel.addComment(fileName, comment);
+            StorageReference ref = storageReference.child("images/" + fileName);
+            metadata = new StorageMetadata.Builder()
+                    .setContentType("image/jpg")
+                    .setCustomMetadata("UserComment", comment)
+                    .build();
+            ref.updateMetadata(metadata)
+                    .addOnFailureListener(exception -> {
+                        Log.d("ERROR", "Upload comment");
+                    });
         }
     }
 
@@ -274,12 +285,12 @@ public class FullScreenImageActivity extends AppCompatActivity
         @Override
         public Fragment getItem(int position) {
             setPosition(position);
-            return ImageFragment.createInstance(mApi.getFileNameByListPosition(position));
+            return ImageFragment.createInstance(mViewModel.getFileNameFromLocalFolderByPosition(position));
         }
 
         @Override
         public int getCount() {
-            return mApi.getGeneratedImageFolder().list().length;
+            return mViewModel.getLocalImageFolder().list().length;
         }
     }
 }

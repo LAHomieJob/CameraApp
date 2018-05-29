@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,17 +23,17 @@ import java.util.List;
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> implements
         ListPreloader.PreloadModelProvider<File> {
 
-    private File imagesFile;
     private Context context;
     private OnImageClickListener listener;
     private ViewModel viewModel;
+    private File imagesFiles;
 
     public ImageAdapter
-            (Context context, File folderFile, OnImageClickListener onImageClickListener, ViewModel viewModel) {
+            (Context context, OnImageClickListener onImageClickListener, ViewModel viewModel) {
         this.context = context;
-        listener = onImageClickListener;
         this.viewModel = viewModel;
-        imagesFile = folderFile;
+        listener = onImageClickListener;
+        this.imagesFiles = viewModel.getLocalImageFolder();
     }
 
     @NonNull
@@ -45,25 +46,34 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
+        String filePath = imagesFiles.listFiles()[position].getAbsolutePath();
+        String fileName = imagesFiles.listFiles()[position].getName();
         GlideApp.with(context)
-                .load(imagesFile.listFiles()[position])
+                .load(filePath)
                 .override(600, 600)
                 .into(holder.imageView);
-        int uploadBookmark = viewModel.getImageModelByFileName(imagesFile.list()[position]).getUpload();
-        if (uploadBookmark == 1) {
-            holder.bookmark.setVisibility(View.VISIBLE);
+        try {
+            int uploadBookmark = viewModel.getImageModelByFileName(fileName).getUpload();
+            Log.d("BOOKMARK", String.valueOf(uploadBookmark));
+            if (uploadBookmark == 1) {
+                holder.bookmark.setVisibility(View.VISIBLE);
+            } else {
+                holder.bookmark.setVisibility(View.GONE);
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public int getItemCount() {
-        return imagesFile.listFiles().length;
+        return imagesFiles.listFiles().length;
     }
 
     @NonNull
     @Override
     public List<File> getPreloadItems(final int position) {
-        return new ArrayList<>(Arrays.asList(imagesFile.listFiles()))
+        return new ArrayList<>(Arrays.asList(imagesFiles.listFiles()))
                 .subList(position, position + 1);
     }
 

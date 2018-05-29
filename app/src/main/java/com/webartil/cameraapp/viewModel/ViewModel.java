@@ -8,6 +8,9 @@ import android.support.annotation.NonNull;
 import com.webartil.cameraapp.database.ImageModel;
 import com.webartil.cameraapp.repository.Repository;
 
+import java.io.File;
+import java.io.IOException;
+
 public class ViewModel extends AndroidViewModel {
 
     private Repository repository;
@@ -15,6 +18,22 @@ public class ViewModel extends AndroidViewModel {
     public ViewModel(@NonNull final Application application) {
         super(application);
         repository = new Repository(application);
+    }
+
+    public File getLocalImageFolder() {
+        return repository.getLocalImageFolder();
+    }
+
+    public String getFileNameFromLocalFolderByPosition(int listPosition) {
+        return repository.getFileNameFromLocalFolderByPosition(listPosition);
+    }
+
+    public File getFileFromLocalFolderByPosition(int listPosition) {
+        return repository.getFileFromLocalFolderByPosition(listPosition);
+    }
+
+    public File createTemporaryImageFile() throws IOException {
+        return repository.createTemporaryImageFile();
     }
 
     public void insert(ImageModel imageModel) { repository.insert(imageModel); }
