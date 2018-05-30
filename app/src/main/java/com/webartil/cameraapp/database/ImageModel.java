@@ -15,15 +15,15 @@ public class ImageModel {
     @NonNull
     @PrimaryKey
     @ColumnInfo(name = "file_path")
-    @Exclude private String filePath;
+    private String filePath;
 
     @ColumnInfo(name = "comment")
     private String comment;
 
     @ColumnInfo(name = "uploaded")
-    @Exclude private int upload;
+    private int upload;
 
-    public ImageModel(final String filePath) {
+    public ImageModel(@NonNull final String filePath) {
         this.filePath = filePath;
         this.upload = 0;
     }
@@ -32,6 +32,7 @@ public class ImageModel {
     }
 
     @NonNull
+    @Exclude
     public String getFilePath() {
         return filePath;
     }
@@ -40,6 +41,7 @@ public class ImageModel {
         this.filePath = filePath;
     }
 
+    @Exclude
     public int getUpload() {
         return upload;
     }

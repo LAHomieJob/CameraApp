@@ -1,4 +1,4 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
-    <dimen name="image_grid_size">200dp</dimen>
+    <dimen name="recyclerview_outline_margin">2dp</dimen>
 </resources>
