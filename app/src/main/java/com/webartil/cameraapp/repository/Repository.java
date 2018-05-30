@@ -4,6 +4,7 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
+import com.webartil.cameraapp.api.FirebaseApi;
 import com.webartil.cameraapp.api.LocalStorageApi;
 import com.webartil.cameraapp.database.AppDatabase;
 import com.webartil.cameraapp.database.ImageDao;
@@ -11,50 +12,60 @@ import com.webartil.cameraapp.database.ImageModel;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public class Repository {
 
     private ImageDao imageDao;
-    private LocalStorageApi mApi;
+    private LocalStorageApi mLocalStorageApi;
+    private FirebaseApi mFirebaseApi;
 
     public Repository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
-        mApi = new LocalStorageApi(application);
+        mLocalStorageApi = new LocalStorageApi(application);
+        mFirebaseApi = new FirebaseApi();
         imageDao= db.mImageDao();
     }
 
     public File getLocalImageFolder() {
-        return mApi.getLocalImageFolder();
+        return mLocalStorageApi.getLocalImageFolder();
     }
 
     public String getFileNameFromLocalFolderByPosition(int listPosition) {
-        return mApi.getFileNameFromLocalFolderByPosition(listPosition);
+        return mLocalStorageApi.getFileNameFromLocalFolderByPosition(listPosition);
     }
 
     public File getFileFromLocalFolderByPosition(int listPosition) {
-        return mApi.getFileFromFolderByPosition(listPosition);
+        return mLocalStorageApi.getFileFromFolderByPosition(listPosition);
     }
 
     public File createTemporaryImageFile() throws IOException {
-        return mApi.createTemporaryImageFile();
+        return mLocalStorageApi.createTemporaryImageFile();
     }
 
+    public void uploadImage(File uploadFile, FirebaseApi.UploadListener listener){
+        mFirebaseApi.uploadImage(uploadFile, listener);
+    }
+
+    public LiveData<List<ImageModel>> getAllImageModels(){
+        return imageDao.getAllImageModels();
+    }
     public void insert(ImageModel imageModel) {
         new InsertAsyncTask(imageDao).execute(imageModel);
     }
 
-    public void addComment(String fileName, String comment){
-        new AddCommentAsyncTask(imageDao).execute(fileName, comment);
+    public void addComment(String filePath, String comment){
+        new AddCommentAsyncTask(imageDao).execute(filePath, comment);
     }
 
-    public void setImageUploaded(String fileName) {
-        new SetImageUploadedAsyncTask(imageDao).execute(fileName);
+    public void setImageUploaded(String filePath) {
+        new SetImageUploadedAsyncTask(imageDao).execute(filePath);
     }
 
-    public ImageModel getImageModelByFileName(String fileName) {
+    public ImageModel getImageModelByFilePath(String filePath) {
         try {
-            return new GetImageModelByFileNameAsyncTask(imageDao).execute(fileName).get();
+            return new GetImageModelByFilePathAsyncTask(imageDao).execute(filePath).get();
         } catch (InterruptedException e) {
             e.printStackTrace();
             return null;
@@ -64,8 +75,8 @@ public class Repository {
         }
     }
 
-    public LiveData<ImageModel> getLiveDataImageModelByFileName(String fileName){
-        return imageDao.getLiveDataImageModelByFileName(fileName);
+    public LiveData<ImageModel> getLiveDataImageModelByFilePath(String filePath){
+        return imageDao.getLiveDataImageModelByFilePath(filePath);
     }
 
     private static class InsertAsyncTask extends AsyncTask<ImageModel, Void, Void> {
@@ -113,17 +124,17 @@ public class Repository {
         }
     }
 
-    private static class GetImageModelByFileNameAsyncTask extends AsyncTask<String, Void, ImageModel> {
+    private static class GetImageModelByFilePathAsyncTask extends AsyncTask<String, Void, ImageModel> {
 
         private ImageDao mAsyncTaskDao;
 
-        GetImageModelByFileNameAsyncTask(ImageDao dao) {
+        GetImageModelByFilePathAsyncTask(ImageDao dao) {
             mAsyncTaskDao = dao;
         }
 
         @Override
         protected ImageModel doInBackground(String... params) {
-            return mAsyncTaskDao.getImageModelByFileName(params[0]);
+            return mAsyncTaskDao.getImageModelByFilePath(params[0]);
         }
 
         @Override

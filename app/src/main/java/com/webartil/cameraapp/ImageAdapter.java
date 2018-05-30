@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,28 +11,27 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
-import com.webartil.cameraapp.viewModel.ViewModel;
+import com.webartil.cameraapp.database.ImageModel;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 
 public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> implements
-        ListPreloader.PreloadModelProvider<File> {
+        ListPreloader.PreloadModelProvider<ImageModel> {
 
     private Context context;
     private OnImageClickListener listener;
-    private ViewModel viewModel;
-    private File imagesFiles;
+    private List<ImageModel> imageModels;
 
-    public ImageAdapter
-            (Context context, OnImageClickListener onImageClickListener, ViewModel viewModel) {
+    public ImageAdapter(Context context, OnImageClickListener onImageClickListener) {
         this.context = context;
-        this.viewModel = viewModel;
         listener = onImageClickListener;
-        this.imagesFiles = viewModel.getLocalImageFolder();
+    }
+
+    public void setImageModels(List<ImageModel> imageModels) {
+        this.imageModels = imageModels;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -46,42 +44,35 @@ public class ImageAdapter extends RecyclerView.Adapter<ImageAdapter.ViewHolder> 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        String filePath = imagesFiles.listFiles()[position].getAbsolutePath();
-        String fileName = imagesFiles.listFiles()[position].getName();
+        String filePath = imageModels.get(position).getFilePath();
+        int uploadBookmark = imageModels.get(position).getUpload();
         GlideApp.with(context)
                 .load(filePath)
                 .override(600, 600)
                 .into(holder.imageView);
-        try {
-            int uploadBookmark = viewModel.getImageModelByFileName(fileName).getUpload();
-            Log.d("BOOKMARK", String.valueOf(uploadBookmark));
-            if (uploadBookmark == 1) {
-                holder.bookmark.setVisibility(View.VISIBLE);
-            } else {
-                holder.bookmark.setVisibility(View.GONE);
-            }
-        } catch (NullPointerException e) {
-            e.printStackTrace();
+        if (uploadBookmark == 1) {
+            holder.bookmark.setVisibility(View.VISIBLE);
+        } else {
+            holder.bookmark.setVisibility(View.GONE);
         }
     }
 
     @Override
     public int getItemCount() {
-        return imagesFiles.listFiles().length;
+        return imageModels != null ? imageModels.size() : 0;
     }
 
     @NonNull
     @Override
-    public List<File> getPreloadItems(final int position) {
-        return new ArrayList<>(Arrays.asList(imagesFiles.listFiles()))
-                .subList(position, position + 1);
+    public List<ImageModel> getPreloadItems(final int position) {
+        return new ArrayList<>(imageModels).subList(position, position + 1);
     }
 
     @Nullable
     @Override
-    public RequestBuilder<?> getPreloadRequestBuilder(final File item) {
+    public RequestBuilder<?> getPreloadRequestBuilder(final ImageModel item) {
         return GlideApp.with(context)
-                .load(item)
+                .load(item.getFilePath())
                 .override(600, 600);
     }
 

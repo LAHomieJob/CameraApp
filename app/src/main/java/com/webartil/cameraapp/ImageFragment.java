@@ -25,8 +25,8 @@ public class ImageFragment extends Fragment {
         void onClickImage();
     }
 
-    public static final String IMAGE_NAME_DATA = "Image name data";
-    private String fileName;
+    public static final String IMAGE_PATH_DATA = "Image name data";
+    private String filePath;
     private ImageFragmentListener mListener;
     private ImageView mImageView;
     private TextView textViewComment;
@@ -35,7 +35,7 @@ public class ImageFragment extends Fragment {
     public static ImageFragment createInstance(String imagePath) {
         ImageFragment instance = new ImageFragment();
         Bundle args = new Bundle();
-        args.putString(IMAGE_NAME_DATA, imagePath);
+        args.putString(IMAGE_PATH_DATA, imagePath);
         instance.setArguments(args);
         return instance;
     }
@@ -54,7 +54,7 @@ public class ImageFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fileName = getArguments().getString(IMAGE_NAME_DATA);
+        filePath = getArguments().getString(IMAGE_PATH_DATA);
         mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
     }
 
@@ -76,7 +76,7 @@ public class ImageFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        mViewModel.getLiveDataImageModelByFileName(fileName)
+        mViewModel.getLiveDataImageModelByFilePath(filePath)
                 .observe(this, imageModel -> {
                     if (imageModel.getComment() != null) {
                         String comment = imageModel.getComment();
@@ -84,8 +84,7 @@ public class ImageFragment extends Fragment {
                     }
                 });
         Glide.with(this)
-                // TODO: 29.05.2018 delete hardcode
-                .load("/storage/emulated/0/Android/data/com.webartil.cameraapp/files/Pictures/image gallery/" + fileName)
+                .load(filePath)
                 .into(mImageView);
     }
 

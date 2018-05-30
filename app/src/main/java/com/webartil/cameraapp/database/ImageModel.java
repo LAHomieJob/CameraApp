@@ -10,8 +10,8 @@ public class ImageModel {
 
     @NonNull
     @PrimaryKey
-    @ColumnInfo(name = "file_name")
-    private String name;
+    @ColumnInfo(name = "file_path")
+    private String filePath;
 
     @ColumnInfo(name = "comment")
     private String comment;
@@ -19,21 +19,22 @@ public class ImageModel {
     @ColumnInfo(name = "uploaded")
     private int upload;
 
-    public ImageModel(final String name) {
-        this.name = name;
+    public ImageModel(final String filePath) {
+        this.filePath = filePath;
         this.upload = 0;
+    }
+
+    @NonNull
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(@NonNull final String filePath) {
+        this.filePath = filePath;
     }
 
     public int getUpload() {
         return upload;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
     }
 
     public String getComment() {

@@ -33,9 +33,13 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camera);
-        mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
         Toolbar toolbar = findViewById(R.id.toolbar_activity_camera);
         setSupportActionBar(toolbar);
+        mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
+        mViewModel.getAllImageModels()
+                .observe(this, imageModels -> {
+                    imageAdapter.setImageModels(imageModels);
+                });
         initRecyclerView();
         FloatingActionButton fab = findViewById(R.id.fab_shoot_photo);
         fab.setOnClickListener(view -> takePhoto());
@@ -45,9 +49,9 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
         mRecyclerView = findViewById(R.id.gallery_recycler_view);
         RecyclerView.LayoutManager layoutManager = new GridLayoutManager(this, 3);
         mRecyclerView.setLayoutManager(layoutManager);
-        imageAdapter = new ImageAdapter(this, this, mViewModel);
-        FixedPreloadSizeProvider<File> preloadSizeProvider = new FixedPreloadSizeProvider<>(600, 600);
-        RecyclerViewPreloader<File> preloader = new RecyclerViewPreloader<>
+        imageAdapter = new ImageAdapter(this, this);
+        FixedPreloadSizeProvider<ImageModel> preloadSizeProvider = new FixedPreloadSizeProvider<>(600, 600);
+        RecyclerViewPreloader<ImageModel> preloader = new RecyclerViewPreloader<>
                 (Glide.with(this), imageAdapter, preloadSizeProvider, 10);
         mRecyclerView.setAdapter(imageAdapter);
         mRecyclerView.addOnScrollListener(preloader);
@@ -68,8 +72,7 @@ public class CameraActivity extends AppCompatActivity implements ImageAdapter.On
     protected void onActivityResult(final int requestCode, final int resultCode, final Intent data) {
         if (requestCode == ACTIVITY_START_CAMERA_APP) {
             if (resultCode == RESULT_OK) {
-                mViewModel.insert(new ImageModel(tempPhotoFile.getName()));
-                imageAdapter.notifyDataSetChanged();
+                mViewModel.insert(new ImageModel(tempPhotoFile.getAbsolutePath()));
             } else {
                 /*delete empty temporary file if the user closes
                 the camera without shooting photo*/

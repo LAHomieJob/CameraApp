@@ -5,11 +5,13 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
+import com.webartil.cameraapp.api.FirebaseApi;
 import com.webartil.cameraapp.database.ImageModel;
 import com.webartil.cameraapp.repository.Repository;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class ViewModel extends AndroidViewModel {
 
@@ -36,21 +38,29 @@ public class ViewModel extends AndroidViewModel {
         return repository.createTemporaryImageFile();
     }
 
+    public void uploadImage(File uploadFile, FirebaseApi.UploadListener listener){
+        repository.uploadImage(uploadFile, listener);
+    }
+
+    public LiveData<List<ImageModel>> getAllImageModels(){
+        return repository.getAllImageModels();
+    }
+
     public void insert(ImageModel imageModel) { repository.insert(imageModel); }
 
-    public void addComment (String fileName, String comment) {
-        repository.addComment(fileName, comment);
+    public void addComment (String filePath, String comment) {
+        repository.addComment(filePath, comment);
     }
 
-    public void setImageUploaded(String fileName) {
-        repository.setImageUploaded(fileName);
+    public void setImageUploaded(String filePath) {
+        repository.setImageUploaded(filePath);
     }
 
-    public ImageModel getImageModelByFileName(String fileName){
-        return repository.getImageModelByFileName(fileName);
+    public ImageModel getImageModelByFilePath(String filePath){
+        return repository.getImageModelByFilePath(filePath);
     }
 
-    public LiveData<ImageModel> getLiveDataImageModelByFileName(String fileName){
-        return repository.getLiveDataImageModelByFileName(fileName);
+    public LiveData<ImageModel> getLiveDataImageModelByFilePath (String filePath){
+        return repository.getLiveDataImageModelByFilePath(filePath);
     }
 }
