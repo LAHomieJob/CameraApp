@@ -5,7 +5,7 @@ import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.support.annotation.NonNull;
 
-import com.webartil.cameraapp.api.FirebaseApi;
+import com.webartil.cameraapp.api.firebaseApi.FirebaseStorageApi;
 import com.webartil.cameraapp.database.ImageModel;
 import com.webartil.cameraapp.repository.Repository;
 
@@ -22,33 +22,27 @@ public class ViewModel extends AndroidViewModel {
         repository = new Repository(application);
     }
 
-    public File getLocalImageFolder() {
-        return repository.getLocalImageFolder();
-    }
-
-    public String getFileNameFromLocalFolderByPosition(int listPosition) {
-        return repository.getFileNameFromLocalFolderByPosition(listPosition);
-    }
-
-    public File getFileFromLocalFolderByPosition(int listPosition) {
-        return repository.getFileFromLocalFolderByPosition(listPosition);
-    }
-
     public File createTemporaryImageFile() throws IOException {
         return repository.createTemporaryImageFile();
     }
 
-    public void uploadImage(File uploadFile, FirebaseApi.UploadListener listener){
+    public void uploadImage(File uploadFile, FirebaseStorageApi.UploadListener listener) {
         repository.uploadImage(uploadFile, listener);
     }
 
-    public LiveData<List<ImageModel>> getAllImageModels(){
+    public void uploadCommentInformation(ImageModel imageModel) {
+        repository.uploadCommentInformation(imageModel);
+    }
+
+    public LiveData<List<ImageModel>> getAllImageModels() {
         return repository.getAllImageModels();
     }
 
-    public void insert(ImageModel imageModel) { repository.insert(imageModel); }
+    public void insert(ImageModel imageModel) {
+        repository.insert(imageModel);
+    }
 
-    public void addComment (String filePath, String comment) {
+    public void addComment(String filePath, String comment) {
         repository.addComment(filePath, comment);
     }
 
@@ -56,11 +50,11 @@ public class ViewModel extends AndroidViewModel {
         repository.setImageUploaded(filePath);
     }
 
-    public ImageModel getImageModelByFilePath(String filePath){
+    public ImageModel getImageModelByFilePath(String filePath) {
         return repository.getImageModelByFilePath(filePath);
     }
 
-    public LiveData<ImageModel> getLiveDataImageModelByFilePath (String filePath){
+    public LiveData<ImageModel> getLiveDataImageModelByFilePath(String filePath) {
         return repository.getLiveDataImageModelByFilePath(filePath);
     }
 }

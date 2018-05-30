@@ -4,7 +4,8 @@ import android.app.Application;
 import android.arch.lifecycle.LiveData;
 import android.os.AsyncTask;
 
-import com.webartil.cameraapp.api.FirebaseApi;
+import com.webartil.cameraapp.api.firebaseApi.FirebaseDatabaseApi;
+import com.webartil.cameraapp.api.firebaseApi.FirebaseStorageApi;
 import com.webartil.cameraapp.api.LocalStorageApi;
 import com.webartil.cameraapp.database.AppDatabase;
 import com.webartil.cameraapp.database.ImageDao;
@@ -19,33 +20,27 @@ public class Repository {
 
     private ImageDao imageDao;
     private LocalStorageApi mLocalStorageApi;
-    private FirebaseApi mFirebaseApi;
+    private FirebaseStorageApi mFirebaseStorageApi;
+    private FirebaseDatabaseApi mFirebaseDatabaseApi;
 
     public Repository(Application application) {
         AppDatabase db = AppDatabase.getInstance(application);
         mLocalStorageApi = new LocalStorageApi(application);
-        mFirebaseApi = new FirebaseApi();
+        mFirebaseStorageApi = new FirebaseStorageApi();
+        mFirebaseDatabaseApi = new FirebaseDatabaseApi();
         imageDao= db.mImageDao();
-    }
-
-    public File getLocalImageFolder() {
-        return mLocalStorageApi.getLocalImageFolder();
-    }
-
-    public String getFileNameFromLocalFolderByPosition(int listPosition) {
-        return mLocalStorageApi.getFileNameFromLocalFolderByPosition(listPosition);
-    }
-
-    public File getFileFromLocalFolderByPosition(int listPosition) {
-        return mLocalStorageApi.getFileFromFolderByPosition(listPosition);
     }
 
     public File createTemporaryImageFile() throws IOException {
         return mLocalStorageApi.createTemporaryImageFile();
     }
 
-    public void uploadImage(File uploadFile, FirebaseApi.UploadListener listener){
-        mFirebaseApi.uploadImage(uploadFile, listener);
+    public void uploadImage(File uploadFile, FirebaseStorageApi.UploadListener listener){
+        mFirebaseStorageApi.uploadImage(uploadFile, listener);
+    }
+
+    public void uploadCommentInformation(ImageModel imageModel){
+        mFirebaseDatabaseApi.uploadCommentInformation(imageModel);
     }
 
     public LiveData<List<ImageModel>> getAllImageModels(){

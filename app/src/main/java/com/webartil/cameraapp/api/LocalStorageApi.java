@@ -19,18 +19,6 @@ public class LocalStorageApi {
         this.imageFolder = createExternalImageFolder();
     }
 
-    public File getLocalImageFolder() {
-        return imageFolder;
-    }
-
-    public String getFileNameFromLocalFolderByPosition(int listPosition) {
-        return imageFolder.listFiles()[listPosition].getName();
-    }
-
-    public File getFileFromFolderByPosition(int listPosition) {
-        return imageFolder.listFiles()[listPosition];
-    }
-
     public File createTemporaryImageFile() throws IOException {
         String imageFileName = generateDataImageName();
         return File.createTempFile(imageFileName, ".jpg", imageFolder);

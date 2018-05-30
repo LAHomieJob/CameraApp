@@ -1,4 +1,4 @@
-package com.webartil.cameraapp;
+package com.webartil.cameraapp.activities;
 
 import android.annotation.SuppressLint;
 import android.arch.lifecycle.ViewModelProviders;
@@ -19,7 +19,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.webartil.cameraapp.api.FirebaseApi;
+import com.webartil.cameraapp.fragments.alertDialogs.CommentAlertDialog;
+import com.webartil.cameraapp.fragments.ImageFragment;
+import com.webartil.cameraapp.R;
+import com.webartil.cameraapp.api.firebaseApi.FirebaseStorageApi;
 import com.webartil.cameraapp.database.ImageModel;
 import com.webartil.cameraapp.viewModel.ViewModel;
 
@@ -92,9 +95,14 @@ public class FullScreenImageActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         mVisible = true;
-        mViewPager = findViewById(R.id.image_pager);
         position = getIntent().getIntExtra(POSITION, 0);
         mViewModel = ViewModelProviders.of(this).get(ViewModel.class);
+        initViewPager();
+        initToolbar();
+    }
+
+    private void initViewPager() {
+        mViewPager = findViewById(R.id.image_pager);
         mViewModel.getAllImageModels()
                 .observe(this, imageModels -> {
                     listImageModels = (ArrayList<ImageModel>) imageModels;
@@ -118,7 +126,6 @@ public class FullScreenImageActivity extends AppCompatActivity
 
             }
         });
-        initToolbar();
     }
 
 
@@ -151,119 +158,126 @@ public class FullScreenImageActivity extends AppCompatActivity
 
     private void uploadImage() {
         File uploadFile = new File(listImageModels.get(position).getFilePath());
-        FirebaseApi.UploadListener listener = new FirebaseApi.UploadListener() {
+        FirebaseStorageApi.UploadListener listener = new FirebaseStorageApi.UploadListener() {
             @Override
             public void addOnSuccessListener() {
                 mViewModel.setImageUploaded(uploadFile.getAbsolutePath());
-                Toast.makeText(FullScreenImageActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                Toast.makeText(FullScreenImageActivity.this, R.string.uploaded, Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void addOnFailureListener(final Exception e) {
-                Toast.makeText(FullScreenImageActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(FullScreenImageActivity.this, getString(R.string.failed) + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         };
         mViewModel.uploadImage(uploadFile, listener);
+        mViewModel.uploadCommentInformation(listImageModels.get(position));
     }
 
-    private void showCommentDialog() {
-        dialog = new CommentAlertDialog();
-        dialog.show(getSupportFragmentManager(), COMMENT_DIALOG);
-    }
+        private void showCommentDialog () {
+            dialog = new CommentAlertDialog();
+            dialog.show(getSupportFragmentManager(), COMMENT_DIALOG);
+        }
 
-    @Override
-    public void onDialogPositiveClick(final DialogFragment dialog) {
-        EditText commentBox = dialog.getDialog().findViewById(R.id.text_comment);
-        if (TextUtils.isEmpty(commentBox.getText())) {
-            dialog.dismiss();
-        } else {
+
+        @Override
+        public void onDialogPositiveClick ( final DialogFragment dialog){
+            EditText commentBox = dialog.getDialog().findViewById(R.id.text_comment);
             String filePath = listImageModels.get(position).getFilePath();
-            String comment = commentBox.getText().toString();
-            mViewModel.addComment(filePath, comment);
+            if (TextUtils.isEmpty(commentBox.getText())) {
+                dialog.dismiss();
+            } else {
+                String comment = commentBox.getText().toString();
+                mViewModel.addComment(filePath, comment);
+            }
+            //Update comment for uploaded image inside FirebaseDB
+            ImageModel selectedImage = mViewModel.getImageModelByFilePath(filePath);
+            if (selectedImage.getUpload() == 1){
+                mViewModel.uploadCommentInformation(selectedImage);
+            }
         }
-    }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100);
-    }
-
-    private void toggle() {
-        if (mVisible) {
-            hide();
-        } else {
-            show();
+        @Override
+        protected void onPostCreate (Bundle savedInstanceState){
+            super.onPostCreate(savedInstanceState);
+            // Trigger the initial hide() shortly after the activity has been
+            // created, to briefly hint to the user that UI controls
+            // are available.
+            delayedHide(100);
         }
-    }
 
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
+        private void toggle () {
+            if (mVisible) {
+                hide();
+            } else {
+                show();
+            }
         }
-        mVisible = false;
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.removeCallbacks(mShowPart2Runnable);
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
 
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-        mViewPager.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        mVisible = true;
-
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-        mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
-    }
-
-    @Override
-    public void onTouchImage() {
-        // Set up the user interaction to manually show or hide the system UI.
-        if (AUTO_HIDE) {
-            delayedHide(AUTO_HIDE_DELAY_MILLIS);
+        private void hide () {
+            // Hide UI first
+            ActionBar actionBar = getSupportActionBar();
+            if (actionBar != null) {
+                actionBar.hide();
+            }
+            mVisible = false;
+            // Schedule a runnable to remove the status and navigation bar after a delay
+            mHideHandler.removeCallbacks(mShowPart2Runnable);
+            mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
         }
-    }
 
-    @Override
-    public void onClickImage() {
+        @SuppressLint("InlinedApi")
+        private void show () {
+            // Show the system bar
+            mViewPager.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+            mVisible = true;
+
+            // Schedule a runnable to display UI elements after a delay
+            mHideHandler.removeCallbacks(mHidePart2Runnable);
+            mHideHandler.postDelayed(mShowPart2Runnable, UI_ANIMATION_DELAY);
+        }
+
+        /**
+         * Schedules a call to hide() in delay milliseconds, canceling any
+         * previously scheduled calls.
+         */
+        private void delayedHide ( int delayMillis){
+            mHideHandler.removeCallbacks(mHideRunnable);
+            mHideHandler.postDelayed(mHideRunnable, delayMillis);
+        }
+
+        @Override
+        public void onTouchImage () {
+            // Set up the user interaction to manually show or hide the system UI.
+            if (AUTO_HIDE) {
+                delayedHide(AUTO_HIDE_DELAY_MILLIS);
+            }
+        }
+
+        @Override
+        public void onClickImage () {
         /*Upon interacting with UI controls, delay any scheduled hide()
         operations to prevent the jarring behavior of controls going away
         while interacting with the UI.*/
-        toggle();
+            toggle();
+        }
+
+
+        private class ImagePagerAdapter extends FragmentStatePagerAdapter {
+
+            public ImagePagerAdapter(FragmentManager fm) {
+                super(fm);
+            }
+
+            @Override
+            public Fragment getItem(int position) {
+                return ImageFragment.createInstance(listImageModels.get(position).getFilePath());
+            }
+
+            @Override
+            public int getCount() {
+                return listImageModels.size();
+            }
+        }
     }
-
-
-    private class ImagePagerAdapter extends FragmentStatePagerAdapter {
-
-        public ImagePagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return ImageFragment.createInstance(listImageModels.get(position).getFilePath());
-        }
-
-        @Override
-        public int getCount() {
-            return listImageModels.size();
-        }
-    }
-}

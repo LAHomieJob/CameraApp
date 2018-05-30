@@ -1,4 +1,4 @@
-package com.webartil.cameraapp;
+package com.webartil.cameraapp.activities;
 
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
@@ -14,6 +14,8 @@ import android.support.v7.widget.Toolbar;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.integration.recyclerview.RecyclerViewPreloader;
 import com.bumptech.glide.util.FixedPreloadSizeProvider;
+import com.webartil.cameraapp.adapters.ImageAdapter;
+import com.webartil.cameraapp.R;
 import com.webartil.cameraapp.database.ImageModel;
 import com.webartil.cameraapp.viewModel.ViewModel;
 

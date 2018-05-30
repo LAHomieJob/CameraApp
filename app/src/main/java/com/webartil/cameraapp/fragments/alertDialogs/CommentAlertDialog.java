@@ -1,4 +1,4 @@
-package com.webartil.cameraapp;
+package com.webartil.cameraapp.fragments.alertDialogs;
 
 import android.app.Dialog;
 import android.arch.lifecycle.Lifecycle;
@@ -12,6 +12,8 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+
+import com.webartil.cameraapp.R;
 
 public class CommentAlertDialog extends DialogFragment implements LifecycleOwner {
 

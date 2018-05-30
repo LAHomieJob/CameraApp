@@ -1,4 +1,4 @@
-package com.webartil.cameraapp;
+package com.webartil.cameraapp.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -11,6 +11,8 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.ListPreloader;
 import com.bumptech.glide.RequestBuilder;
+import com.webartil.cameraapp.GlideApp;
+import com.webartil.cameraapp.R;
 import com.webartil.cameraapp.database.ImageModel;
 
 import java.util.ArrayList;

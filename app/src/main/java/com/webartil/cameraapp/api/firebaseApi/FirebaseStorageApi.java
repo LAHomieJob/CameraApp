@@ -1,22 +1,19 @@
-package com.webartil.cameraapp.api;
+package com.webartil.cameraapp.api.firebaseApi;
 
-import android.app.ProgressDialog;
 import android.net.Uri;
-import android.widget.Toast;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.webartil.cameraapp.FullScreenImageActivity;
 
 import java.io.File;
 
-public class FirebaseApi {
+public class FirebaseStorageApi {
 
     private static final String IMAGES_FOLDER = "images/";
     private FirebaseStorage storage;
     private StorageReference storageReference;
 
-    public FirebaseApi() {
+    public FirebaseStorageApi() {
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
     }
@@ -28,14 +25,9 @@ public class FirebaseApi {
             ref.putFile(filePath)
                     .addOnSuccessListener(taskSnapshot -> {
                         listener.addOnSuccessListener();
-                        /*progressDialog.dismiss();
-                        mViewModel.setImageUploaded(uploadFile.getAbsolutePath());
-                        Toast.makeText(FullScreenImageActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();*/
                     })
                     .addOnFailureListener(e -> {
                         listener.addOnFailureListener(e);
-                        /*progressDialog.dismiss();
-                        Toast.makeText(FullScreenImageActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();*/
                     });
         }
     }

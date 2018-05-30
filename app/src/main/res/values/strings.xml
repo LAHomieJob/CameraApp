@@ -6,4 +6,6 @@
     <string name="comment_photo">Comment photo</string>
     <string name="comment">Comment</string>
     <string name="cancel">Cancel</string>
+    <string name="uploaded">Uploaded</string>
+    <string name="failed">Failed</string>
 </resources>

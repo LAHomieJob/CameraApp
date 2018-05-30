@@ -1,4 +1,4 @@
-package com.webartil.cameraapp;
+package com.webartil.cameraapp.fragments;
 
 
 import android.annotation.SuppressLint;
@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.webartil.cameraapp.R;
 import com.webartil.cameraapp.viewModel.ViewModel;
 
 
@@ -25,7 +26,7 @@ public class ImageFragment extends Fragment {
         void onClickImage();
     }
 
-    public static final String IMAGE_PATH_DATA = "Image name data";
+    public static final String IMAGE_PATH_DATA = "Image path data";
     private String filePath;
     private ImageFragmentListener mListener;
     private ImageView mImageView;
@@ -66,6 +67,9 @@ public class ImageFragment extends Fragment {
         mImageView = view.findViewById(R.id.place_image);
         textViewComment = view.findViewById(R.id.text_comment);
         mImageView.setOnClickListener(v -> mListener.onClickImage());
+        Glide.with(this)
+                .load(filePath)
+                .into(mImageView);
         mImageView.setOnTouchListener((v, event) -> {
             mListener.onTouchImage();
             return false;
@@ -83,9 +87,6 @@ public class ImageFragment extends Fragment {
                         textViewComment.setText(comment);
                     }
                 });
-        Glide.with(this)
-                .load(filePath)
-                .into(mImageView);
     }
 
     @Override
